@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+.env
+data/chroma_db/
+data/response_cache/
+.pytest_cache/
+
+.venv/
+.DS_Store
+.claude/
+help.md
