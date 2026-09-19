@@ -167,9 +167,13 @@ and the maximum-step guard.
 
 ### Evaluation Results
 
-The current generated report in `evaluation/results.md` records 7/7 expected
-fixture outcomes, 7/7 action/tool correctness, and an average trajectory of
-2.14 steps. Token fields are `null` for these mocked runs as documented above.
+The current generated report in `evaluation/results.md` records a 7/7 (100%)
+scenario success rate and a 4/7 (57%) actual task completion rate. The status
+distribution is 4 completed, 1 clarification-required, 2 degraded, and 0 failed.
+Tool/action correctness is 7/7 (100%), with an average trajectory length of
+2.14 steps. Token fields are `null` for deterministic mocked evaluation runs
+because those fixtures make no external provider calls; live agent runs report
+real provider token usage when available.
 
 ## Running tests
 
