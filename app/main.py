@@ -27,12 +27,13 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
 from app.cache import get_cached, set_cached
+from app.agent import run_agent
 from app.config import settings
 from app.llm_client import generate_answer, generate_structured
 from app.rag.ingest import ingest_file
 from app.rag.vector_store import add_chunks, query as rag_query
 from app.rate_limiter import limiter, CHAT_RATE_LIMIT
-from app.schemas import ChatRequest, ChatResponse, HealthResponse, IngestResponse, Source
+from app.schemas import AgentRequest, AgentResponse, ChatRequest, ChatResponse, HealthResponse, IngestResponse, Source
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
@@ -110,6 +111,13 @@ async def chat(request: Request, body: ChatRequest):
         set_cached(body.query, context, response.model_dump(exclude={"cached"}))
 
     return response
+
+
+@app.post("/agent/chat", response_model=AgentResponse)
+@limiter.limit(CHAT_RATE_LIMIT)
+async def agent_chat(request: Request, body: AgentRequest):
+    """Run the bounded, inspectable adaptive-evidence agent."""
+    return await run_in_threadpool(run_agent, body.query, body.use_rag)
 
 
 @app.post("/structured")

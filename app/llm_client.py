@@ -35,6 +35,25 @@ Rules:
 """
 
 
+def _usage_dict(response) -> dict:
+    """Normalize provider-reported usage without estimating missing values."""
+    usage = getattr(response, "usage_metadata", None)
+    if usage is not None:
+        return {
+            "input_tokens": getattr(usage, "prompt_token_count", None),
+            "output_tokens": getattr(usage, "candidates_token_count", None),
+            "total_tokens": getattr(usage, "total_token_count", None),
+        }
+    usage = getattr(response, "usage", None)
+    if usage is not None:
+        return {
+            "input_tokens": getattr(usage, "prompt_tokens", None),
+            "output_tokens": getattr(usage, "completion_tokens", None),
+            "total_tokens": getattr(usage, "total_tokens", None),
+        }
+    return {}
+
+
 class RetryableProviderError(Exception):
     """Raised for transient provider errors (rate limit, timeout, 5xx) that are worth retrying."""
 
@@ -126,7 +145,15 @@ def _call_gemini(query: str, context: str, allow_tools: bool = True) -> dict:
         )
         answer_text = followup.text or answer_text
 
-    return {"answer": answer_text.strip(), "tool_calls": tool_calls}
+    usage = _usage_dict(response)
+    if tool_calls:
+        followup_usage = _usage_dict(followup)
+        usage = {
+            key: (usage.get(key) or 0) + (followup_usage.get(key) or 0)
+            for key in ("input_tokens", "output_tokens", "total_tokens")
+            if usage.get(key) is not None or followup_usage.get(key) is not None
+        }
+    return {"answer": answer_text.strip(), "tool_calls": tool_calls, "usage": usage}
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +208,15 @@ def _call_groq(query: str, context: str, allow_tools: bool = True) -> dict:
     else:
         answer = message.content or ""
 
-    return {"answer": answer.strip(), "tool_calls": tool_calls}
+    usage = _usage_dict(response)
+    if tool_calls:
+        followup_usage = _usage_dict(followup)
+        usage = {
+            key: (usage.get(key) or 0) + (followup_usage.get(key) or 0)
+            for key in ("input_tokens", "output_tokens", "total_tokens")
+            if usage.get(key) is not None or followup_usage.get(key) is not None
+        }
+    return {"answer": answer.strip(), "tool_calls": tool_calls, "usage": usage}
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +246,16 @@ def _call_local_model(query: str, context: str) -> dict:
     except Exception as e:
         raise RetryableProviderError(str(e)) from e
 
-    return {"answer": answer.strip(), "tool_calls": []}
+    usage = data.get("usage") or {}
+    return {
+        "answer": answer.strip(),
+        "tool_calls": [],
+        "usage": {
+            "input_tokens": usage.get("prompt_tokens"),
+            "output_tokens": usage.get("completion_tokens"),
+            "total_tokens": usage.get("total_tokens"),
+        },
+    }
 
 
 # ---------------------------------------------------------------------------

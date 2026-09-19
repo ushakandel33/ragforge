@@ -65,6 +65,38 @@ flowchart TB
 6. **Response caching** — successful (non-fallback) responses are cached
    for `CACHE_TTL_SECONDS`.
 
+## Week 16 request flow: `/agent/chat`
+
+```mermaid
+flowchart TB
+   USER[User] --> EDGE[FastAPI / Streamlit]
+   EDGE --> AGENT[RAGForge single agent]
+   AGENT --> DECIDE{Decide next action}
+   DECIDE -->|RETRIEVE| RETRIEVE[ChromaDB retrieval tool]
+   DECIDE -->|CALCULATE / GET_TIME| TOOLS[Bounded deterministic tools]
+   DECIDE -->|VERIFY / REVISE| UPDATE[Update candidate answer]
+   DECIDE -->|ASK_USER| CLARIFY[Clarification response]
+   DECIDE -->|FINALIZE| STOP[Stopping condition]
+   RETRIEVE --> EVIDENCE[Evidence manager: deduplicate, rank, cap, retain sources]
+   TOOLS --> OBS[Tool observation]
+   EVIDENCE --> OBS
+   UPDATE --> STATE[Compact structured state/history update]
+   OBS --> STATE
+   STATE --> GUARD{Max steps / loop guard}
+   GUARD -->|continue| DECIDE
+   GUARD -->|stop safely| STOP
+   STOP --> RESPONSE[Inspectable response, no hidden chain-of-thought]
+   AGENT -. provider fallback .-> PROVIDERS[Gemini -> Groq -> optional local -> static]
+```
+
+The agent loop is `decide -> act -> observe -> update state -> decide again`.
+It can retrieve again when the first evidence set is insufficient, use a
+bounded tool, ask for clarification, revise, or stop transparently. The
+`MAX_AGENT_STEPS` equivalent is `settings.max_agent_steps` (default 5), and
+repeated action signatures are guarded. Evidence is score-ranked,
+deduplicated, capped, and source-tagged before it enters the next decision
+context; verbose raw transcripts are not accumulated.
+
 ## Why these components
 
 | Concern | Choice | Reason |

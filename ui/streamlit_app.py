@@ -14,6 +14,7 @@ st.title("🤖 RAGForge")
 with st.sidebar:
     st.header("Settings")
     use_rag = st.checkbox("Use document context (RAG)", value=True)
+    agentic_mode = st.checkbox("Agentic Mode", value=False)
     st.divider()
     st.subheader("Upload a document")
     uploaded = st.file_uploader("PDF or text file", type=["pdf", "txt", "md"])
@@ -53,15 +54,26 @@ if prompt := st.chat_input("Ask something..."):
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
+                endpoint = "/agent/chat" if agentic_mode else "/chat"
                 resp = requests.post(
-                    f"{BACKEND_URL}/chat",
+                    f"{BACKEND_URL}{endpoint}",
                     json={"query": prompt, "use_rag": use_rag},
                     timeout=60,
                 )
                 resp.raise_for_status()
                 data = resp.json()
                 answer = data["answer"]
-                meta = f"Provider: {data['provider_used']}" + (" (cached)" if data.get("cached") else "")
+                if agentic_mode:
+                    meta = (
+                        f"Status: {data['status']} · Agent steps: {data['iterations']} · "
+                        f"Actions: {' -> '.join(data.get('actions', []))}"
+                    )
+                    if data.get("tools_used"):
+                        meta += f" · Tools: {', '.join(data['tools_used'])}"
+                    if data.get("total_tokens") is not None:
+                        meta += f" · Tokens: {data['total_tokens']}"
+                else:
+                    meta = f"Provider: {data['provider_used']}" + (" (cached)" if data.get("cached") else "")
                 if data.get("sources"):
                     meta += f" · {len(data['sources'])} source chunk(s) used"
                 st.markdown(answer)

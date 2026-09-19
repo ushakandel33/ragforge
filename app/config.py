@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 3600
     max_retries: int = 3
 
+    # Agentic RAG
+    max_agent_steps: int = 5
+    agent_evidence_limit: int = 6
+    agent_history_limit: int = 8
+
     # RAG
     vector_db_path: str = "./data/chroma_db"
     chunk_size: int = 500

@@ -1,0 +1,155 @@
+[
+  {
+    "id": "first_retrieval",
+    "expected_behavior": "retrieve once, then finalize",
+    "scenario_success": true,
+    "task_completed": true,
+    "actions": [
+      "RETRIEVE",
+      "FINALIZE"
+    ],
+    "failures": [],
+    "tool_arguments_valid": true,
+    "trajectory_length": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "completed",
+    "failure_classification": "None",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "Employees receive 20 days."
+  },
+  {
+    "id": "adaptive_second_retrieval",
+    "expected_behavior": "retrieve additional evidence before finalizing",
+    "scenario_success": true,
+    "task_completed": true,
+    "actions": [
+      "RETRIEVE",
+      "RETRIEVE",
+      "REVISE",
+      "FINALIZE"
+    ],
+    "failures": [],
+    "tool_arguments_valid": true,
+    "trajectory_length": 4,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "completed",
+    "failure_classification": "None",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "The policy provides 20 days with manager approval for exceptions."
+  },
+  {
+    "id": "calculator",
+    "expected_behavior": "use calculator without retrieval",
+    "scenario_success": true,
+    "task_completed": true,
+    "actions": [
+      "CALCULATE",
+      "FINALIZE"
+    ],
+    "failures": [],
+    "tool_arguments_valid": true,
+    "trajectory_length": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "completed",
+    "failure_classification": "None",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "84"
+  },
+  {
+    "id": "insufficient_evidence",
+    "expected_behavior": "degrade rather than invent an answer",
+    "scenario_success": true,
+    "task_completed": false,
+    "actions": [
+      "RETRIEVE",
+      "FINALIZE"
+    ],
+    "failures": [
+      "finalize without verified evidence or tool observation"
+    ],
+    "tool_arguments_valid": true,
+    "trajectory_length": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "degraded",
+    "failure_classification": "Soft failure",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "I could not complete this request because the required evidence or tool was unavailable."
+  },
+  {
+    "id": "clarification",
+    "expected_behavior": "request clarification",
+    "scenario_success": true,
+    "task_completed": false,
+    "actions": [
+      "ASK_USER"
+    ],
+    "failures": [],
+    "tool_arguments_valid": true,
+    "trajectory_length": 1,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "clarification_required",
+    "failure_classification": "None",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "What date and item should I book?"
+  },
+  {
+    "id": "injected_retrieval_failure",
+    "expected_behavior": "record retrieval failure and degrade",
+    "scenario_success": true,
+    "task_completed": false,
+    "actions": [
+      "RETRIEVE",
+      "FINALIZE"
+    ],
+    "failures": [
+      "retrieval failure: intentional evaluation retrieval failure",
+      "finalize without verified evidence or tool observation"
+    ],
+    "tool_arguments_valid": true,
+    "trajectory_length": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "degraded",
+    "failure_classification": "Soft failure",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "I could not complete this request because the required evidence or tool was unavailable."
+  },
+  {
+    "id": "avoid_extra_calls",
+    "expected_behavior": "one calculator call and finalization",
+    "scenario_success": true,
+    "task_completed": true,
+    "actions": [
+      "CALCULATE",
+      "FINALIZE"
+    ],
+    "failures": [],
+    "tool_arguments_valid": true,
+    "trajectory_length": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "final_status": "completed",
+    "failure_classification": "None",
+    "action_correct": true,
+    "diagnostic_notes": "Provider usage metadata was unavailable for one or more agent calls.",
+    "answer": "4"
+  }
+]
